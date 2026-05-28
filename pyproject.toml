@@ -6,7 +6,7 @@ requires = [
 
 [project]
 name = "django-integrity-policy"
-version = "0.0.1"
+version = "1.0.0"
 description = "Set the Integrity-Policy HTTP header on your Django app."
 readme = "README.rst"
 keywords = [
