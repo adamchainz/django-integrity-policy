@@ -1,0 +1,17 @@
+{% load sri %}
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>django-integrity-policy demo</title>
+  {% sri_static "app.css" %}
+</head>
+<body>
+  <main>
+    <h1>🏰</h1>
+    <h2>django-integrity-policy demo</h2>
+  </main>
+  {% sri_static "app.js" %}
+</body>
+</html>

@@ -265,6 +265,9 @@ django52 = [
 django60 = [
     { name = "django", version = "6.0.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
 ]
+example = [
+    { name = "django-sri" },
+]
 test = [
     { name = "coverage", extra = ["toml"] },
     { name = "pytest" },
@@ -284,11 +287,28 @@ django50 = [{ name = "django", marker = "python_full_version >= '3.10'", specifi
 django51 = [{ name = "django", marker = "python_full_version >= '3.10'", specifier = ">=5.1a1,<5.2" }]
 django52 = [{ name = "django", marker = "python_full_version >= '3.10'", specifier = ">=5.2a1,<6" }]
 django60 = [{ name = "django", marker = "python_full_version >= '3.12'", specifier = ">=6a1,<6.1" }]
+example = [{ name = "django-sri", specifier = ">=0.8.0" }]
 test = [
     { name = "coverage", extras = ["toml"] },
     { name = "pytest", specifier = ">=9" },
     { name = "pytest-django" },
     { name = "pytest-randomly" },
+]
+
+[[package]]
+name = "django-sri"
+version = "0.8.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django", version = "4.2.30", source = { registry = "https://pypi.org/simple" }, marker = "extra == 'group-23-django-integrity-policy-django42' or (extra == 'group-23-django-integrity-policy-django50' and extra == 'group-23-django-integrity-policy-django51') or (extra == 'group-23-django-integrity-policy-django50' and extra == 'group-23-django-integrity-policy-django52') or (extra == 'group-23-django-integrity-policy-django50' and extra == 'group-23-django-integrity-policy-django60') or (extra == 'group-23-django-integrity-policy-django51' and extra == 'group-23-django-integrity-policy-django52') or (extra == 'group-23-django-integrity-policy-django51' and extra == 'group-23-django-integrity-policy-django60') or (extra == 'group-23-django-integrity-policy-django52' and extra == 'group-23-django-integrity-policy-django60')" },
+    { name = "django", version = "5.0.14", source = { registry = "https://pypi.org/simple" }, marker = "extra == 'group-23-django-integrity-policy-django50' or (extra == 'group-23-django-integrity-policy-django42' and extra == 'group-23-django-integrity-policy-django51') or (extra == 'group-23-django-integrity-policy-django42' and extra == 'group-23-django-integrity-policy-django52') or (extra == 'group-23-django-integrity-policy-django42' and extra == 'group-23-django-integrity-policy-django60') or (extra == 'group-23-django-integrity-policy-django51' and extra == 'group-23-django-integrity-policy-django52') or (extra == 'group-23-django-integrity-policy-django51' and extra == 'group-23-django-integrity-policy-django60') or (extra == 'group-23-django-integrity-policy-django52' and extra == 'group-23-django-integrity-policy-django60')" },
+    { name = "django", version = "5.1.15", source = { registry = "https://pypi.org/simple" }, marker = "extra == 'group-23-django-integrity-policy-django51' or (extra == 'group-23-django-integrity-policy-django42' and extra == 'group-23-django-integrity-policy-django50') or (extra == 'group-23-django-integrity-policy-django50' and extra == 'group-23-django-integrity-policy-django52') or (extra == 'group-23-django-integrity-policy-django50' and extra == 'group-23-django-integrity-policy-django60') or (extra == 'group-23-django-integrity-policy-django52' and extra == 'group-23-django-integrity-policy-django60') or (extra == 'group-23-django-integrity-policy-django42' and extra != 'group-23-django-integrity-policy-django51' and extra == 'group-23-django-integrity-policy-django52') or (extra == 'group-23-django-integrity-policy-django42' and extra != 'group-23-django-integrity-policy-django51' and extra == 'group-23-django-integrity-policy-django60')" },
+    { name = "django", version = "5.2.14", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.12' and extra != 'group-23-django-integrity-policy-django42' and extra != 'group-23-django-integrity-policy-django50' and extra != 'group-23-django-integrity-policy-django51') or extra == 'group-23-django-integrity-policy-django52' or (extra == 'group-23-django-integrity-policy-django42' and extra == 'group-23-django-integrity-policy-django50') or (extra == 'group-23-django-integrity-policy-django42' and extra == 'group-23-django-integrity-policy-django51') or (extra == 'group-23-django-integrity-policy-django42' and extra == 'group-23-django-integrity-policy-django60') or (extra == 'group-23-django-integrity-policy-django50' and extra == 'group-23-django-integrity-policy-django51') or (extra == 'group-23-django-integrity-policy-django50' and extra == 'group-23-django-integrity-policy-django60') or (extra == 'group-23-django-integrity-policy-django51' and extra == 'group-23-django-integrity-policy-django60')" },
+    { name = "django", version = "6.0.5", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.12' and extra != 'group-23-django-integrity-policy-django42' and extra != 'group-23-django-integrity-policy-django50' and extra != 'group-23-django-integrity-policy-django51' and extra != 'group-23-django-integrity-policy-django52') or (extra == 'group-23-django-integrity-policy-django42' and extra == 'group-23-django-integrity-policy-django50') or (extra == 'group-23-django-integrity-policy-django42' and extra == 'group-23-django-integrity-policy-django51') or (extra == 'group-23-django-integrity-policy-django42' and extra == 'group-23-django-integrity-policy-django52') or (extra == 'group-23-django-integrity-policy-django42' and extra == 'group-23-django-integrity-policy-django60') or (extra == 'group-23-django-integrity-policy-django50' and extra == 'group-23-django-integrity-policy-django51') or (extra == 'group-23-django-integrity-policy-django50' and extra == 'group-23-django-integrity-policy-django52') or (extra == 'group-23-django-integrity-policy-django50' and extra == 'group-23-django-integrity-policy-django60') or (extra == 'group-23-django-integrity-policy-django51' and extra == 'group-23-django-integrity-policy-django52') or (extra == 'group-23-django-integrity-policy-django51' and extra == 'group-23-django-integrity-policy-django60') or (extra == 'group-23-django-integrity-policy-django52' and extra == 'group-23-django-integrity-policy-django60')" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/72/4e/b2e78d217ba14982ae69e521d5a7ed6870d956fdabb561c429ee22e76d5d/django_sri-0.8.0.tar.gz", hash = "sha256:acce5c4ac29d7355074acbd2807863baa42dbecffe2b23c0eedd6a5aa203ed5c", size = 8268, upload-time = "2025-01-21T09:09:14.951Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/6d/3e/b2ab51629acf64d43f72bd9300d99d4819abe8b560d0508827008f474d6a/django_sri-0.8.0-py3-none-any.whl", hash = "sha256:88448529441bc2205dabc3c603bdef49762acd0371809fc8849a13a2242ceb08", size = 7842, upload-time = "2025-01-21T09:09:13.421Z" },
 ]
 
 [[package]]
