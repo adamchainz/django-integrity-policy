@@ -155,3 +155,5 @@ For example:
     <link rel="stylesheet" href="/static/app.css" integrity="sha256-..."/>
 
 These tags would be allowed per a strict integrity policy.
+
+For a full example project, see the ``example/`` directory in this repository.
