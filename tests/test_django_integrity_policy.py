@@ -79,6 +79,21 @@ class IntegrityPolicyMiddlewareTests(SimpleTestCase):
             == "blocked-destinations=(script), sources=(inline)"
         )
 
+    def test_all_fields(self):
+        with override_settings(
+            INTEGRITY_POLICY={
+                "blocked-destinations": ["script", "style"],
+                "sources": ["inline"],
+                "endpoints": ["integrity-endpoint"],
+            }
+        ):
+            resp = self.client.get("/")
+
+        assert (
+            resp["Integrity-Policy"]
+            == "blocked-destinations=(script style), sources=(inline), endpoints=(integrity-endpoint)"
+        )
+
     def test_unknown_blocked_destination(self):
         with (
             override_settings(INTEGRITY_POLICY={"blocked-destinations": ["unknown"]}),
@@ -124,6 +139,21 @@ class IntegrityPolicyMiddlewareTests(SimpleTestCase):
             resp = self.client.get("/")
 
         assert resp["Integrity-Policy-Report-Only"] == "blocked-destinations=(script)"
+
+    def test_report_only_all_fields(self):
+        with override_settings(
+            INTEGRITY_POLICY_REPORT_ONLY={
+                "blocked-destinations": ["script", "style"],
+                "sources": ["inline"],
+                "endpoints": ["integrity-endpoint"],
+            }
+        ):
+            resp = self.client.get("/")
+
+        assert (
+            resp["Integrity-Policy-Report-Only"]
+            == "blocked-destinations=(script style), sources=(inline), endpoints=(integrity-endpoint)"
+        )
 
     def test_setting_changing(self):
         with override_settings(INTEGRITY_POLICY={}):
