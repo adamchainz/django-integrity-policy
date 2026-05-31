@@ -136,8 +136,8 @@ Test the effect of blocking scripts without enforcing it:
 Adding ``integrity`` attributes
 -------------------------------
 
-Once ``Integrity-Policy`` is set, the browser will block any external scripts (``<script src=...>``) or stylesheets (``<link rel=stylesheet href=...>``) that lack a valid ``integrity`` attribute, including your first-party resources.
-To generate ``integrity`` attributes for your first-party static files, you can use the `django-sri package <https://pypi.org/project/django-sri/>`__, which provides template tags to generate appropriately hashed HTML tags.
+Once ``Integrity-Policy`` is set, the browser will block any scripts or stylesheets (depending on configuration) that lack a valid ``integrity`` attribute, including your first-party resources.
+To generate ``integrity`` attributes for your project’s static files, you can use the `django-sri package <https://pypi.org/project/django-sri/>`__, which provides template tags to generate appropriately hashed HTML tags.
 For example:
 
 .. code-block:: html+django
