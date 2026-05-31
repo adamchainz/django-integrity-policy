@@ -4,12 +4,10 @@ from http import HTTPStatus
 
 import pytest
 from django.core.exceptions import ImproperlyConfigured
-from django.test import RequestFactory, SimpleTestCase, override_settings
+from django.test import SimpleTestCase, override_settings
 
 
 class IntegrityPolicyMiddlewareTests(SimpleTestCase):
-    request_factory = RequestFactory()
-
     def test_index(self):
         resp = self.client.get("/")
 
