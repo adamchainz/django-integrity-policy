@@ -97,7 +97,10 @@ class IntegrityPolicyMiddlewareTests(SimpleTestCase):
     def test_unknown_blocked_destination(self):
         with (
             override_settings(INTEGRITY_POLICY={"blocked-destinations": ["unknown"]}),
-            pytest.raises(ImproperlyConfigured),
+            pytest.raises(
+                ImproperlyConfigured,
+                match="Unknown blocked-destination 'unknown' in INTEGRITY_POLICY",
+            ),
         ):
             self.client.get("/")
 
@@ -109,7 +112,10 @@ class IntegrityPolicyMiddlewareTests(SimpleTestCase):
                     "sources": ["unknown"],
                 }
             ),
-            pytest.raises(ImproperlyConfigured),
+            pytest.raises(
+                ImproperlyConfigured,
+                match="Unknown source 'unknown' in INTEGRITY_POLICY",
+            ),
         ):
             self.client.get("/")
 
@@ -121,14 +127,20 @@ class IntegrityPolicyMiddlewareTests(SimpleTestCase):
                     "bad-key": ["value"],
                 }
             ),
-            pytest.raises(ImproperlyConfigured),
+            pytest.raises(
+                ImproperlyConfigured,
+                match="Unknown key\\(s\\) in INTEGRITY_POLICY: bad-key",
+            ),
         ):
             self.client.get("/")
 
     def test_missing_blocked_destinations(self):
         with (
             override_settings(INTEGRITY_POLICY={"endpoints": ["integrity-endpoint"]}),
-            pytest.raises(ImproperlyConfigured),
+            pytest.raises(
+                ImproperlyConfigured,
+                match="INTEGRITY_POLICY must include 'blocked-destinations' with at least one value",
+            ),
         ):
             self.client.get("/")
 
