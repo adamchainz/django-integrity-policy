@@ -48,21 +48,29 @@ class IntegrityPolicyMiddleware:
             return self.__acall__(request)
         response = self.get_response(request)
         assert isinstance(response, HttpResponseBase)  # type narrow
-
-        if integrity_policy := self.integrity_policy:
-            response["Integrity-Policy"] = integrity_policy
-        if integrity_policy_report_only := self.integrity_policy_report_only:
-            response["Integrity-Policy-Report-Only"] = integrity_policy_report_only
-        return response
+        return self._apply_headers(response)
 
     async def __acall__(self, request: HttpRequest) -> HttpResponseBase:
         result = self.get_response(request)
         assert not isinstance(result, HttpResponseBase)  # type narrow
         response = await result
-        if integrity_policy := self.integrity_policy:
-            response["Integrity-Policy"] = integrity_policy
-        if integrity_policy_report_only := self.integrity_policy_report_only:
-            response["Integrity-Policy-Report-Only"] = integrity_policy_report_only
+        return self._apply_headers(response)
+
+    def _apply_headers(self, response: HttpResponseBase) -> HttpResponseBase:
+        if hasattr(response, "_integrity_policy_override"):
+            if response._integrity_policy_override:
+                response["Integrity-Policy"] = response._integrity_policy_override
+        elif value := self.integrity_policy:
+            response["Integrity-Policy"] = value
+
+        if hasattr(response, "_integrity_policy_report_only_override"):
+            if response._integrity_policy_report_only_override:
+                response["Integrity-Policy-Report-Only"] = (
+                    response._integrity_policy_report_only_override
+                )
+        elif value := self.integrity_policy_report_only:
+            response["Integrity-Policy-Report-Only"] = value
+
         return response
 
     @cached_property
@@ -79,8 +87,8 @@ class IntegrityPolicyMiddleware:
             setting_name="INTEGRITY_POLICY_REPORT_ONLY",
         )
 
+    @staticmethod
     def compute_header_value(
-        self,
         setting: dict[str, list[str]],
         setting_name: str,
     ) -> str:
