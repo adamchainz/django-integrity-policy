@@ -133,6 +133,91 @@ Test the effect of blocking scripts without enforcing it:
         "endpoints": ["integrity-endpoint"],
     }
 
+Decorators
+----------
+
+Use the below decorators to override the integrity policies (live and report-only) on a per-view basis.
+The decorators fully replace the given policy set by the global settings for that view, rather than merging with it.
+
+The examples below use function-based views.
+To decorate class-based views, use the ``@method_decorator`` per `Django’s class-based view decoration documentation <https://docs.djangoproject.com/en/stable/topics/class-based-views/intro/#decorating-class-based-views>`__.
+
+``integrity_policy_override(config)``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Overrides the ``Integrity-Policy`` header for the decorated view, using a dictionary
+in the same format as the ``INTEGRITY_POLICY`` setting.
+
+If ``config`` is an empty mapping (``{}``), no ``Integrity-Policy`` header will be
+added to the response for that view.
+
+For example, to block integrity-free scripts but not styles on a particular view:
+
+.. code-block:: python
+
+    from django.shortcuts import render
+    from django_integrity_policy.decorators import integrity_policy_override
+
+
+    @integrity_policy_override(
+        {
+            "blocked-destinations": ["script"],
+        }
+    )
+    def drawbridge_view(request):
+        return render(request, "castle/drawbridge.html")
+
+…or, to not set an integrity policy at all on a particular view:
+
+.. code-block:: python
+
+    from django.shortcuts import render
+    from django_integrity_policy.decorators import integrity_policy_override
+
+
+    @integrity_policy_override({})
+    def dungeon_view(request):
+        return render(request, "castle/dungeon.html")
+
+``integrity_policy_report_only_override(config)``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Overrides the ``Integrity-Policy-Report-Only`` header for the decorated view, using a
+dictionary in the same format as the ``INTEGRITY_POLICY_REPORT_ONLY`` setting.
+
+If ``config`` is an empty mapping (``{}``), no ``Integrity-Policy-Report-Only`` header
+will be added to the response for that view.
+
+For example, to test a policy that blocks integrity-free scripts and styles for a particular view:
+
+.. code-block:: python
+
+    from django.shortcuts import render
+    from django_integrity_policy.decorators import integrity_policy_report_only_override
+
+
+    @integrity_policy_report_only_override(
+        {
+            "blocked-destinations": ["script", "style"],
+            "endpoints": ["integrity-endpoint"],
+        }
+    )
+    def gatehouse_view(request):
+        return render(request, "castle/gatehouse.html")
+
+
+…or, to not set a report-only integrity policy at all on a particular view:
+
+.. code-block:: python
+
+    from django.shortcuts import render
+    from django_integrity_policy.decorators import integrity_policy_report_only_override
+
+
+    @integrity_policy_report_only_override({})
+    def moat_view(request):
+        return render(request, "castle/moat.html")
+
 Adding ``integrity`` attributes
 -------------------------------
 
