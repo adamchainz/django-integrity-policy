@@ -47,7 +47,19 @@ Installation
 
     python -m pip install django-integrity-policy
 
-2. Add the middleware in your ``MIDDLEWARE`` setting. It's best to add it
+2. Optionally, add ``"django_integrity_policy"`` to your ``INSTALLED_APPS`` to enable
+   `Django system checks <https://docs.djangoproject.com/en/stable/topics/checks/>`__
+   that validate your settings and warn about misconfigurations:
+
+   .. code-block:: python
+
+       INSTALLED_APPS = [
+           ...,
+           "django_integrity_policy",
+           ...,
+       ]
+
+3. Add the middleware in your ``MIDDLEWARE`` setting. It's best to add it
 after Django's ``SecurityMiddleware``, so it adds the header at the same point
 in your stack:
 
@@ -60,7 +72,7 @@ in your stack:
         ...,
     ]
 
-3. Add an ``INTEGRITY_POLICY`` or ``INTEGRITY_POLICY_REPORT_ONLY`` setting to your settings file.
+4. Add an ``INTEGRITY_POLICY`` or ``INTEGRITY_POLICY_REPORT_ONLY`` setting to your settings file.
    Here's an example that blocks scripts and stylesheets that lack integrity metadata:
 
    .. code-block:: python
@@ -132,6 +144,19 @@ Test the effect of blocking scripts without enforcing it:
         "blocked-destinations": ["script"],
         "endpoints": ["integrity-endpoint"],
     }
+
+System Checks
+-------------
+
+When ``"django_integrity_policy"`` is in ``INSTALLED_APPS``, the following
+`Django system checks <https://docs.djangoproject.com/en/stable/topics/checks/>`__ are run:
+
+* ``integrity_policy.E001`` - ``INTEGRITY_POLICY`` has invalid keys or values.
+* ``integrity_policy.E002`` - ``INTEGRITY_POLICY_REPORT_ONLY`` has invalid keys or values.
+* ``integrity_policy.W001`` - ``IntegrityPolicyMiddleware`` is in ``MIDDLEWARE`` but neither
+  ``INTEGRITY_POLICY`` nor ``INTEGRITY_POLICY_REPORT_ONLY`` is configured.
+* ``integrity_policy.W002`` - ``INTEGRITY_POLICY`` or ``INTEGRITY_POLICY_REPORT_ONLY`` is
+  configured but ``IntegrityPolicyMiddleware`` is not in ``MIDDLEWARE``.
 
 Decorators
 ----------
