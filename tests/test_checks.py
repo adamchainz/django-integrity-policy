@@ -141,9 +141,7 @@ class CheckMiddlewareAndSettingsTests(SimpleTestCase):
 
     def test_subclassed_middleware_detected(self):
         with override_settings(
-            MIDDLEWARE=[
-                "tests.testapp.middleware.SubclassedIntegrityPolicyMiddleware"
-            ],
+            MIDDLEWARE=["tests.testapp.middleware.SubclassedIntegrityPolicyMiddleware"],
             INTEGRITY_POLICY={"blocked-destinations": ["script"]},
         ):
             warnings = check_middleware_and_settings(None)
@@ -151,9 +149,7 @@ class CheckMiddlewareAndSettingsTests(SimpleTestCase):
 
     def test_subclassed_middleware_without_settings_warns(self):
         with override_settings(
-            MIDDLEWARE=[
-                "tests.testapp.middleware.SubclassedIntegrityPolicyMiddleware"
-            ],
+            MIDDLEWARE=["tests.testapp.middleware.SubclassedIntegrityPolicyMiddleware"],
         ):
             warnings = check_middleware_and_settings(None)
         assert len(warnings) == 1
