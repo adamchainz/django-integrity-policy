@@ -104,6 +104,20 @@ Each setting should be a dictionary with the following keys:
 
 If the keys or values are invalid, ``ImproperlyConfigured`` will be raised at instantiation time.
 
+Middleware arguments
+~~~~~~~~~~~~~~~~~~~~
+
+``IntegrityPolicyMiddleware`` also accepts two keyword-only arguments, which take precedence over the equivalent settings:
+
+* ``policy`` - a dictionary in the same format as the ``INTEGRITY_POLICY`` setting.
+* ``report_only_policy`` - a dictionary in the same format as the ``INTEGRITY_POLICY_REPORT_ONLY`` setting.
+
+When an argument is ``None`` (the default), the corresponding setting is used, and changes to it (such as with ``override_settings()`` in tests) take effect.
+When an argument is given, the setting is ignored for that instance, and the header value is computed and validated at instantiation time.
+Note that an empty dictionary (``{}``) is a value meaning “send no header”, which is different to ``None`` meaning “use the setting”.
+
+Django only ever instantiates middleware with ``get_response``, so these arguments are for when you construct instances yourself, such as within another middleware that dispatches between several instances.
+
 Examples
 ~~~~~~~~
 

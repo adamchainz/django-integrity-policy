@@ -5,6 +5,9 @@ Changelog
 Unreleased
 ----------
 
+* Add ``policy`` and ``report_only_policy`` keyword-only arguments to ``IntegrityPolicyMiddleware.__init__()``, which take precedence over the ``INTEGRITY_POLICY`` and ``INTEGRITY_POLICY_REPORT_ONLY`` settings.
+  This allows composing several differently-configured instances, such as to send a different policy for admin pages.
+
 * Support Python 3.15.
 
 * Add Django 6.1 support.

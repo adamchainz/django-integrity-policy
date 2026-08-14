@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+from collections.abc import Awaitable
 from http import HTTPStatus
 
 import pytest
 from django.core.exceptions import ImproperlyConfigured
-from django.test import SimpleTestCase, override_settings
+from django.http import HttpResponse, HttpResponseBase
+from django.test import RequestFactory, SimpleTestCase, override_settings
+
+from django_integrity_policy import IntegrityPolicyMiddleware
 
 
 class IntegrityPolicyMiddlewareTests(SimpleTestCase):
@@ -218,3 +222,164 @@ class IntegrityPolicyMiddlewareTests(SimpleTestCase):
 
         assert resp.status_code == HTTPStatus.OK
         assert resp["Integrity-Policy-Report-Only"] == "blocked-destinations=(script)"
+
+
+class IntegrityPolicyMiddlewareArgumentTests(SimpleTestCase):
+    request_factory = RequestFactory()
+
+    def get_response(self, request):
+        return HttpResponse("Hello World")
+
+    async def aget_response(self, request):
+        return HttpResponse("Hello World")
+
+    @override_settings(INTEGRITY_POLICY={"blocked-destinations": ["script"]})
+    def test_policy_argument_used_instead_of_setting(self):
+        middleware = IntegrityPolicyMiddleware(
+            self.get_response, policy={"blocked-destinations": ["style"]}
+        )
+
+        resp = middleware(self.request_factory.get("/"))
+
+        assert isinstance(resp, HttpResponseBase)
+        assert resp["Integrity-Policy"] == "blocked-destinations=(style)"
+
+    @override_settings(
+        INTEGRITY_POLICY_REPORT_ONLY={"blocked-destinations": ["script"]}
+    )
+    def test_report_only_policy_argument_used_instead_of_setting(self):
+        middleware = IntegrityPolicyMiddleware(
+            self.get_response, report_only_policy={"blocked-destinations": ["style"]}
+        )
+
+        resp = middleware(self.request_factory.get("/"))
+
+        assert isinstance(resp, HttpResponseBase)
+        assert resp["Integrity-Policy-Report-Only"] == "blocked-destinations=(style)"
+
+    @override_settings(INTEGRITY_POLICY={"blocked-destinations": ["script"]})
+    def test_empty_policy_argument_sends_no_header(self):
+        middleware = IntegrityPolicyMiddleware(self.get_response, policy={})
+
+        resp = middleware(self.request_factory.get("/"))
+
+        assert isinstance(resp, HttpResponseBase)
+        assert "Integrity-Policy" not in resp
+
+    @override_settings(
+        INTEGRITY_POLICY_REPORT_ONLY={"blocked-destinations": ["script"]}
+    )
+    def test_empty_report_only_policy_argument_sends_no_header(self):
+        middleware = IntegrityPolicyMiddleware(self.get_response, report_only_policy={})
+
+        resp = middleware(self.request_factory.get("/"))
+
+        assert isinstance(resp, HttpResponseBase)
+        assert "Integrity-Policy-Report-Only" not in resp
+
+    @override_settings(
+        INTEGRITY_POLICY={"blocked-destinations": ["script"]},
+        INTEGRITY_POLICY_REPORT_ONLY={"blocked-destinations": ["style"]},
+    )
+    def test_none_falls_back_to_settings(self):
+        middleware = IntegrityPolicyMiddleware(self.get_response)
+
+        resp = middleware(self.request_factory.get("/"))
+
+        assert isinstance(resp, HttpResponseBase)
+        assert resp["Integrity-Policy"] == "blocked-destinations=(script)"
+        assert resp["Integrity-Policy-Report-Only"] == "blocked-destinations=(style)"
+
+    def test_invalid_policy_argument(self):
+        with pytest.raises(
+            ImproperlyConfigured,
+            match="Unknown blocked-destination 'font' in 'policy' argument",
+        ):
+            IntegrityPolicyMiddleware(
+                self.get_response, policy={"blocked-destinations": ["font"]}
+            )
+
+    def test_invalid_report_only_policy_argument(self):
+        with pytest.raises(
+            ImproperlyConfigured,
+            match="Unknown blocked-destination 'font' in 'report_only_policy' argument",
+        ):
+            IntegrityPolicyMiddleware(
+                self.get_response, report_only_policy={"blocked-destinations": ["font"]}
+            )
+
+    def test_override_settings_affects_setting_sourced_instance(self):
+        middleware = IntegrityPolicyMiddleware(self.get_response)
+
+        with override_settings(
+            INTEGRITY_POLICY={"blocked-destinations": ["script"]},
+            INTEGRITY_POLICY_REPORT_ONLY={"blocked-destinations": ["style"]},
+        ):
+            resp = middleware(self.request_factory.get("/"))
+
+        assert isinstance(resp, HttpResponseBase)
+        assert resp["Integrity-Policy"] == "blocked-destinations=(script)"
+        assert resp["Integrity-Policy-Report-Only"] == "blocked-destinations=(style)"
+
+    def test_override_settings_does_not_affect_argument_sourced_instance(self):
+        middleware = IntegrityPolicyMiddleware(
+            self.get_response,
+            policy={"blocked-destinations": ["script"]},
+            report_only_policy={"blocked-destinations": ["style"]},
+        )
+
+        with override_settings(
+            INTEGRITY_POLICY={"blocked-destinations": ["style"]},
+            INTEGRITY_POLICY_REPORT_ONLY={"blocked-destinations": ["script"]},
+        ):
+            resp = middleware(self.request_factory.get("/"))
+
+        assert isinstance(resp, HttpResponseBase)
+        assert resp["Integrity-Policy"] == "blocked-destinations=(script)"
+        assert resp["Integrity-Policy-Report-Only"] == "blocked-destinations=(style)"
+
+    def test_override_settings_with_only_policy_from_argument(self):
+        middleware = IntegrityPolicyMiddleware(
+            self.get_response, policy={"blocked-destinations": ["script"]}
+        )
+
+        with override_settings(
+            INTEGRITY_POLICY={"blocked-destinations": ["style"]},
+            INTEGRITY_POLICY_REPORT_ONLY={"blocked-destinations": ["style"]},
+        ):
+            resp = middleware(self.request_factory.get("/"))
+
+        assert isinstance(resp, HttpResponseBase)
+        assert resp["Integrity-Policy"] == "blocked-destinations=(script)"
+        assert resp["Integrity-Policy-Report-Only"] == "blocked-destinations=(style)"
+
+    def test_override_settings_with_only_report_only_policy_from_argument(self):
+        middleware = IntegrityPolicyMiddleware(
+            self.get_response, report_only_policy={"blocked-destinations": ["script"]}
+        )
+
+        with override_settings(
+            INTEGRITY_POLICY={"blocked-destinations": ["style"]},
+            INTEGRITY_POLICY_REPORT_ONLY={"blocked-destinations": ["style"]},
+        ):
+            resp = middleware(self.request_factory.get("/"))
+
+        assert isinstance(resp, HttpResponseBase)
+        assert resp["Integrity-Policy"] == "blocked-destinations=(style)"
+        assert resp["Integrity-Policy-Report-Only"] == "blocked-destinations=(script)"
+
+    @override_settings(INTEGRITY_POLICY={"blocked-destinations": ["style"]})
+    async def test_async_policy_argument(self):
+        middleware = IntegrityPolicyMiddleware(
+            self.aget_response,
+            policy={"blocked-destinations": ["script"]},
+            report_only_policy={"blocked-destinations": ["style"]},
+        )
+
+        coroutine = middleware(self.request_factory.get("/"))
+        assert isinstance(coroutine, Awaitable)
+        resp = await coroutine
+        assert isinstance(resp, HttpResponseBase)
+
+        assert resp["Integrity-Policy"] == "blocked-destinations=(script)"
+        assert resp["Integrity-Policy-Report-Only"] == "blocked-destinations=(style)"

@@ -28,6 +28,9 @@ class IntegrityPolicyMiddleware:
             Callable[[HttpRequest], HttpResponseBase]
             | Callable[[HttpRequest], Awaitable[HttpResponseBase]]
         ),
+        *,
+        policy: dict[str, list[str]] | None = None,
+        report_only_policy: dict[str, list[str]] | None = None,
     ) -> None:
         self.get_response = get_response
         self.async_mode = iscoroutinefunction(self.get_response)
@@ -37,9 +40,27 @@ class IntegrityPolicyMiddleware:
             # inside __call__ to avoid swapping out dunder methods
             markcoroutinefunction(self)
 
-        self.integrity_policy  # noqa: B018 - Access at setup so ImproperlyConfigured can be raised
-        self.integrity_policy_report_only  # noqa: B018 - Access at setup so ImproperlyConfigured can be raised
-        receiver(setting_changed)(self.clear_header_value)
+        # Values from arguments can never change, so compute eagerly. This also
+        # validates them, like the eager access of the setting-based values below.
+        if policy is not None:
+            self.integrity_policy = self.compute_header_value(
+                policy, name="'policy' argument"
+            )
+        else:
+            self.integrity_policy  # noqa: B018 - Access at setup so ImproperlyConfigured can be raised
+
+        if report_only_policy is not None:
+            self.integrity_policy_report_only = self.compute_header_value(
+                report_only_policy, name="'report_only_policy' argument"
+            )
+        else:
+            self.integrity_policy_report_only  # noqa: B018 - Access at setup so ImproperlyConfigured can be raised
+
+        self.policy_from_argument = policy is not None
+        self.report_only_policy_from_argument = report_only_policy is not None
+
+        if not (self.policy_from_argument and self.report_only_policy_from_argument):
+            receiver(setting_changed)(self.clear_header_value)
 
     def __call__(
         self, request: HttpRequest
@@ -77,53 +98,51 @@ class IntegrityPolicyMiddleware:
     def integrity_policy(self) -> str:
         return self.compute_header_value(
             getattr(settings, "INTEGRITY_POLICY", {}),
-            setting_name="INTEGRITY_POLICY",
+            name="INTEGRITY_POLICY",
         )
 
     @cached_property
     def integrity_policy_report_only(self) -> str:
         return self.compute_header_value(
             getattr(settings, "INTEGRITY_POLICY_REPORT_ONLY", {}),
-            setting_name="INTEGRITY_POLICY_REPORT_ONLY",
+            name="INTEGRITY_POLICY_REPORT_ONLY",
         )
 
     @staticmethod
     def compute_header_value(
-        setting: dict[str, list[str]],
-        setting_name: str,
+        policy: dict[str, list[str]],
+        name: str,
     ) -> str:
-        if not setting:
+        if not policy:
             return ""
 
-        unknown_keys = set(setting.keys()) - _VALID_KEYS
+        unknown_keys = set(policy.keys()) - _VALID_KEYS
         if unknown_keys:
             raise ImproperlyConfigured(
-                f"Unknown key(s) in {setting_name}: {', '.join(sorted(unknown_keys))}"
+                f"Unknown key(s) in {name}: {', '.join(sorted(unknown_keys))}"
             )
 
-        blocked_destinations = setting.get("blocked-destinations") or []
+        blocked_destinations = policy.get("blocked-destinations") or []
         if not blocked_destinations:
             raise ImproperlyConfigured(
-                f"{setting_name} must include 'blocked-destinations' with at least one value"
+                f"{name} must include 'blocked-destinations' with at least one value"
             )
         for dest in blocked_destinations:
             if dest not in _BLOCKED_DESTINATIONS:
                 raise ImproperlyConfigured(
-                    f"Unknown blocked-destination '{dest}' in {setting_name}"
+                    f"Unknown blocked-destination '{dest}' in {name}"
                 )
 
         pieces = ["blocked-destinations=(" + " ".join(blocked_destinations) + ")"]
 
-        sources = setting.get("sources")
+        sources = policy.get("sources")
         if sources is not None:
             for src in sources:
                 if src not in _SOURCES:
-                    raise ImproperlyConfigured(
-                        f"Unknown source '{src}' in {setting_name}"
-                    )
+                    raise ImproperlyConfigured(f"Unknown source '{src}' in {name}")
             pieces.append("sources=(" + " ".join(sources) + ")")
 
-        endpoints = setting.get("endpoints")
+        endpoints = policy.get("endpoints")
         if endpoints:
             pieces.append("endpoints=(" + " ".join(endpoints) + ")")
 
@@ -131,11 +150,15 @@ class IntegrityPolicyMiddleware:
 
     def clear_header_value(self, setting: str, **kwargs: object) -> None:
         if setting == "INTEGRITY_POLICY":
+            if self.policy_from_argument:
+                return
             try:
                 del self.integrity_policy
             except AttributeError:
                 pass
         elif setting == "INTEGRITY_POLICY_REPORT_ONLY":
+            if self.report_only_policy_from_argument:
+                return
             try:
                 del self.integrity_policy_report_only
             except AttributeError:

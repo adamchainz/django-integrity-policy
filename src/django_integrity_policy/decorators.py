@@ -49,7 +49,7 @@ def integrity_policy_override(
     config: dict[str, list[str]],
 ) -> Callable[[_ViewFunc], _ViewFunc]:
     header_value = IntegrityPolicyMiddleware.compute_header_value(
-        config, setting_name="integrity_policy_override"
+        config, name="integrity_policy_override"
     )
     return _make_decorator("_integrity_policy_override", header_value)
 
@@ -58,6 +58,6 @@ def integrity_policy_report_only_override(
     config: dict[str, list[str]],
 ) -> Callable[[_ViewFunc], _ViewFunc]:
     header_value = IntegrityPolicyMiddleware.compute_header_value(
-        config, setting_name="integrity_policy_report_only_override"
+        config, name="integrity_policy_report_only_override"
     )
     return _make_decorator("_integrity_policy_report_only_override", header_value)
